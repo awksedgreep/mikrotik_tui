@@ -1,0 +1,4 @@
+%{
+  "logger_file_backend": {:hex, :logger_file_backend, "0.0.14", "774bb661f1c3fed51b624d2859180c01e386eb1273dc22de4f4a155ef749a602", [:mix], [], "hexpm", "071354a18196468f3904ef09413af20971d55164267427f6257b52cfba03f9e6"},
+  "termite": {:hex, :termite, "0.3.0", "3349938ba2bdad6d52f4f5b5da05f88e9374d7a6f4670449c6ff62d5daf232ca", [:mix], [], "hexpm", "1e8371a45d79ff966a3d850c6258be0fed0bc294674b18bcfe8b7cec43896621"},
+}
