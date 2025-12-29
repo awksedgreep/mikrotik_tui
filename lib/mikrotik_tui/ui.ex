@@ -268,16 +268,27 @@ defmodule MikrotikTui.UI do
     bar <> eol()
   end
 
-  defp render_body(%{active: :int}) do
+  defp render_body(%{active: :int, width: width}) do
     snap = MikrotikTui.DataCache.get_snapshot()
     ifs = snap.interfaces || []
 
     rates = MikrotikTui.DataCache.get_rates()
 
+    # Fixed columns: marker(2) + Interface(12) + rx(15) + tx(15) + link(16) + spacing(8) = 68
+    fixed_width = 68
+    comment_width = max(10, width - fixed_width)
+
     header = [
-      header_line(["  ", lpad("Interface", 12), "  ", lpad("rx", 15), "  ", lpad("tx", 15), "  ", lpad("link", 16)]),
+      header_line(["  ", lpad("Interface", 12), "  ", lpad("rx", 15), "  ", lpad("tx", 15), "  ", lpad("link", 16), "  ", lpad("Comment", comment_width)]),
       eol(), "\n"
     ]
+
+    # Build a map of interface name -> comment from the raw interface data
+    comment_map = ifs |> Enum.reduce(%{}, fn e, acc ->
+      name = e["name"]
+      comment = e["comment"]
+      if name && comment, do: Map.put(acc, name, comment), else: acc
+    end)
 
     iface_lines =
       ifs
@@ -285,17 +296,19 @@ defmodule MikrotikTui.UI do
         name = e["name"] || "?"
         rate = Map.get(rates, name, %{rx_bps: 0, tx_bps: 0, link: nil})
         total = rate.rx_bps + rate.tx_bps
-        {total, name, rate}
+        comment = Map.get(comment_map, name, "")
+        {total, name, rate, comment}
       end)
-      |> Enum.sort_by(fn {total, _name, _rate} -> -total end)
+      |> Enum.sort_by(fn {total, _name, _rate, _comment} -> -total end)
       |> Enum.take(10)
-      |> Enum.map(fn {_total, name, rate} ->
+      |> Enum.map(fn {_total, name, rate, comment} ->
         link = if rate.link, do: to_string(rate.link), else: ""
         [
           "- ", lpad(name, 12),
           "  ", rpad(human_bps(rate.rx_bps), 15),
           "  ", rpad(human_bps(rate.tx_bps), 15),
           "  ", lpad(link, 16),
+          "  ", pad(comment, comment_width),
           eol(), "\n"
         ]
       end)
@@ -379,23 +392,30 @@ defmodule MikrotikTui.UI do
     [header | rows] |> IO.iodata_to_binary()
   end
 
-  defp render_body(%{active: :firewall}) do
+  defp render_body(%{active: :firewall, width: width}) do
     rules = MikrotikTui.DataCache.get_firewall()
 
-    header = [header_line(:io_lib.format("~-4s  ~-6s  ~-10s  ~-10s  ~-10s  ~-6s  ~-20s", ["#", "Chain", "Src", "Dst", "Proto", "Action", "Comment"])), eol(), "\n"]
+    # Fixed columns: #(4) + Chain(6) + Src(10) + Dst(10) + Proto(10) + Action(6) + spacing(12) = 58
+    fixed_width = 58
+    comment_width = max(20, width - fixed_width)
+
+    header_fmt = "~-4s  ~-6s  ~-10s  ~-10s  ~-10s  ~-6s  ~-#{comment_width}s"
+    row_fmt = "~-4B  ~-6s  ~-10s  ~-10s  ~-10s  ~-6s  ~-#{comment_width}s"
+
+    header = [header_line(:io_lib.format(header_fmt, ["#", "Chain", "Src", "Dst", "Proto", "Action", "Comment"])), eol(), "\n"]
 
     rows =
       rules
       |> Enum.with_index(1)
       |> Enum.map(fn {r, i} ->
-        row = :io_lib.format("~-4B  ~-6s  ~-10s  ~-10s  ~-10s  ~-6s  ~-20s", [
+        row = :io_lib.format(row_fmt, [
           i,
           pad(r["chain"], 6),
           pad(r["src-address"], 10),
           pad(r["dst-address"], 10),
           pad(r["protocol"], 10),
           pad(r["action"], 6),
-          pad(r["comment"], 20)
+          pad(r["comment"], comment_width)
         ])
         [row, eol(), "\n"]
       end)
@@ -403,23 +423,30 @@ defmodule MikrotikTui.UI do
     [header | rows] |> IO.iodata_to_binary()
   end
 
-  defp render_body(%{active: :nat}) do
+  defp render_body(%{active: :nat, width: width}) do
     rules = MikrotikTui.DataCache.get_nat()
 
-    header = [header_line(:io_lib.format("~-4s  ~-6s  ~-14s  ~-14s  ~-10s  ~-6s  ~-20s", ["#", "Chain", "SrcAddr", "DstAddr", "Proto", "Action", "Comment"])), eol(), "\n"]
+    # Fixed columns: #(4) + Chain(6) + SrcAddr(14) + DstAddr(14) + Proto(10) + Action(6) + spacing(12) = 66
+    fixed_width = 66
+    comment_width = max(20, width - fixed_width)
+
+    header_fmt = "~-4s  ~-6s  ~-14s  ~-14s  ~-10s  ~-6s  ~-#{comment_width}s"
+    row_fmt = "~-4B  ~-6s  ~-14s  ~-14s  ~-10s  ~-6s  ~-#{comment_width}s"
+
+    header = [header_line(:io_lib.format(header_fmt, ["#", "Chain", "SrcAddr", "DstAddr", "Proto", "Action", "Comment"])), eol(), "\n"]
 
     rows =
       rules
       |> Enum.with_index(1)
       |> Enum.map(fn {r, i} ->
-        row = :io_lib.format("~-4B  ~-6s  ~-14s  ~-14s  ~-10s  ~-6s  ~-20s", [
+        row = :io_lib.format(row_fmt, [
           i,
           pad(r["chain"], 6),
           pad(r["src-address"], 14),
           pad(r["dst-address"], 14),
           pad(r["protocol"], 10),
           pad(r["action"], 6),
-          pad(r["comment"], 20)
+          pad(r["comment"], comment_width)
         ])
         [row, eol(), "\n"]
       end)

@@ -21,3 +21,6 @@ mikrotik_tui-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+# Application logs
+/log/

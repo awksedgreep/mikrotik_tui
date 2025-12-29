@@ -1,4 +1,6 @@
 %{
+  "logger_backends": {:hex, :logger_backends, "1.0.0", "09c4fad6202e08cb0fbd37f328282f16539aca380f512523ce9472b28edc6bdf", [:mix], [], "hexpm", "1faceb3e7ec3ef66a8f5746c5afd020e63996df6fd4eb8cdb789e5665ae6c9ce"},
   "logger_file_backend": {:hex, :logger_file_backend, "0.0.14", "774bb661f1c3fed51b624d2859180c01e386eb1273dc22de4f4a155ef749a602", [:mix], [], "hexpm", "071354a18196468f3904ef09413af20971d55164267427f6257b52cfba03f9e6"},
+  "mikrotik_api": {:hex, :mikrotik_api, "0.3.3", "536c2665ef56ac942a9b66892315c64f554adde9221c8bfcb98ed2a6f2574ecc", [:mix], [], "hexpm", "ddff0bb53230651c093c0c5d24912857430214513c8b662e6d7a7861458d886a"},
   "termite": {:hex, :termite, "0.3.0", "3349938ba2bdad6d52f4f5b5da05f88e9374d7a6f4670449c6ff62d5daf232ca", [:mix], [], "hexpm", "1e8371a45d79ff966a3d850c6258be0fed0bc294674b18bcfe8b7cec43896621"},
 }

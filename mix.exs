@@ -7,7 +7,16 @@ defmodule MikrotikTui.MixProject do
       version: "0.1.0",
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      escript: escript()
+    ]
+  end
+
+  defp escript do
+    [
+      main_module: MikrotikTui.CLI,
+      name: "mikrotik_tui",
+      emu_args: ~c"-proto_dist inet_tcp"
     ]
   end
 
@@ -23,8 +32,7 @@ defmodule MikrotikTui.MixProject do
   defp deps do
     [
       {:termite, "~> 0.3"},
-      {:mikrotik_api, path: "../mikrotik_api"},
-      {:logger_file_backend, "~> 0.0.13"}
+      {:mikrotik_api, "~> 0.3.3"}
     ]
   end
 end
